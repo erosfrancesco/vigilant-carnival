@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPi Dashboard - Widgets Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            color: white;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 300;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .widget-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .widget {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .value-display {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .value-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value-number {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .value-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat .label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        canvas {
+            flex: 1;
+        }
+
+        .no-data {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .config-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 28px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .config-button:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e5e7eb;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏠 Live Dashboard</h1>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <div class="widget-section">
+            <div class="section-title">📊 Current Values</div>
+            <div class="widgets-grid">
+                <div class="widget" id="temp-widget"></div>
+                <div class="widget" id="humidity-widget"></div>
+                <div class="widget" id="pressure-widget"></div>
+            </div>
+        </div>
+
+        <div class="widget-section">
+            <div class="section-title">📈 Time-Series Data</div>
+            <div class="widgets-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Temperature Trend</div>
+                    <canvas id="tempChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Humidity Trend</div>
+                    <canvas id="humidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <h2>Server Configuration</h2>
+            <div class="form-group">
+                <label>Server URL (WebSocket)</label>
+                <input type="text" id="serverUrl" placeholder="ws://192.168.1.100:8765">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-save" onclick="saveConfig()">Save & Connect</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="config-button" onclick="openModal()">⚙️</button>
+
+    <script>
+        // ════════════════════════════════════════════════════════════════
+        // Global State
+        // ════════════════════════════════════════════════════════════════
+
+        let ws = null;
+        let chartInstances = {};
+
+        const sensorData = {
+            temperature: [],
+            humidity: [],
+            pressure: [],
+            timestamps: [],
+            current: {
+                temperature: null,
+                humidity: null,
+                pressure: null
+            },
+            stats: {
+                temperature: { min: null, max: null, avg: null },
+                humidity: { min: null, max: null, avg: null },
+                pressure: { min: null, max: null, avg: null }
+            }
+        };
+
+        // ════════════════════════════════════════════════════════════════
+        // Configuration Management
+        // ════════════════════════════════════════════════════════════════
+
+        function getServerUrl() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('server')) return params.get('server');
+
+            const stored = localStorage.getItem('dashboardServer');
+            if (stored) return stored;
+
+            return 'ws://localhost:8765';
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('serverUrl').value;
+            localStorage.setItem('dashboardServer', url);
+            closeModal();
+            location.reload();
+        }
+
+        function openModal() {
+            document.getElementById('serverUrl').value = getServerUrl();
+            document.getElementById('configModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('configModal').classList.remove('open');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // WebSocket Connection
+        // ════════════════════════════════════════════════════════════════
+
+        function connectWebSocket() {
+            const url = getServerUrl();
+            console.log('Connecting to', url);
+
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                console.log('✅ Connected');
+                updateStatus(true);
+            };
+
+            ws.onerror = (error) => {
+                console.error('❌ Error:', error);
+                updateStatus(false);
+            };
+
+            ws.onclose = () => {
+                console.log('⚠️  Disconnected');
+                updateStatus(false);
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onmessage = handleMessage;
+        }
+
+        function handleMessage(event) {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'state' && data.sensors) {
+                    const sensors = data.sensors;
+
+                    // Add temperature
+                    if (sensors.temperature !== undefined) {
+                        sensorData.temperature.push(sensors.temperature);
+                        sensorData.current.temperature = sensors.temperature;
+                    }
+
+                    // Add humidity
+                    if (sensors.humidity !== undefined) {
+                        sensorData.humidity.push(sensors.humidity);
+                        sensorData.current.humidity = sensors.humidity;
+                    }
+
+                    // Add pressure
+                    if (sensors.pressure !== undefined) {
+                        sensorData.pressure.push(sensors.pressure);
+                        sensorData.current.pressure = sensors.pressure;
+                    }
+
+                    // Store timestamp
+                    sensorData.timestamps.push(data.timestamp);
+
+                    // Keep only last 60 values
+                    if (sensorData.temperature.length > 60) {
+                        sensorData.temperature.shift();
+                        sensorData.humidity.shift();
+                        sensorData.pressure.shift();
+                        sensorData.timestamps.shift();
+                    }
+
+                    // Update UI
+                    updateAllWidgets();
+                }
+            } catch (error) {
+                console.error('Parse error:', error);
+            }
+        }
+
+        function updateStatus(connected) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+
+            if (connected) {
+                dot.classList.add('connected');
+                text.textContent = '✅ Connected';
+            } else {
+                dot.classList.remove('connected');
+                text.textContent = '❌ Disconnected';
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // Statistics Calculation
+        // ════════════════════════════════════════════════════════════════
+
+        function calculateStats(sensor) {
+            const data = sensorData[sensor];
+            if (data.length === 0) return { min: null, max: null, avg: null };
+
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const avg = data.reduce((a, b) => a + b) / data.length;
+
+            sensorData.stats[sensor] = {
+                min: min.toFixed(2),
+                max: max.toFixed(2),
+                avg: avg.toFixed(2)
+            };
+
+            return sensorData.stats[sensor];
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // Widget Rendering
+        // ════════════════════════════════════════════════════════════════
+
+        function renderValueWidget(elementId, sensorName, unit, minRange, maxRange) {
+            const value = sensorData.current[sensorName];
+            const stats = calculateStats(sensorName);
+
+            const html = `
+                <div class="value-display">
+                    <div class="value-label">${sensorName.charAt(0).toUpperCase() + sensorName.slice(1)}</div>
+                    <div class="value-number">${value?.toFixed(1) || '—'}<span style="font-size: 24px; margin-left: 5px;">${unit}</span></div>
+                    <div class="value-stats">
+                        <div class="stat">
+                            <span class="label">Min</span>
+                            <span class="value">${stats.min || '—'}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Avg</span>
+                            <span class="value">${stats.avg || '—'}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Max</span>
+                            <span class="value">${stats.max || '—'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        function renderChart(canvasId, sensorName, color, unit, minRange, maxRange) {
+            const canvas = document.getElementById(canvasId);
+            const data = sensorData[sensorName];
+            const timestamps = sensorData.timestamps;
+
+            if (data.length === 0) {
+                canvas.parentElement.innerHTML = '<div class="no-data">Waiting for data...</div>';
+                return;
+            }
+
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+
+            const labels = timestamps.map((ts, idx) => {
+                if (idx % 10 !== 0) return '';
+                const d = new Date(ts);
+                return d.toLocaleTimeString();
+            });
+
+            chartInstances[canvasId] = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: sensorName,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: minRange,
+                            max: maxRange,
+                            ticks: {
+                                callback: (v) => v + unit
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAllWidgets() {
+            renderValueWidget('temp-widget', 'temperature', '°C', 15, 30);
+            renderValueWidget('humidity-widget', 'humidity', '%', 30, 90);
+            renderValueWidget('pressure-widget', 'pressure', 'hPa', 1008, 1018);
+
+            renderChart('tempChart', 'temperature', '#667eea', '°C', 15, 30);
+            renderChart('humidityChart', 'humidity', '#764ba2', '%', 30, 90);
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // Initialization
+        // ════════════════════════════════════════════════════════════════
+
+        document.addEventListener('DOMContentLoaded', () => {
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Dashboard - Preact</title>
+    <script src="https://cdn.jsdelivr.net/npm/preact@10/dist/preact.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preact@10/hooks/dist/hooks.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@7"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.connected {
+            background-color: #4ade80;
+        }
+        
+        .status-indicator.disconnected {
+            background-color: #ef4444;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pin-card {
+            text-align: center;
+        }
+        
+        .pin-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .pin-state {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .pin-state.high {
+            color: #4ade80;
+        }
+        
+        .pin-state.low {
+            color: #ef4444;
+        }
+        
+        .pin-indicator {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin: 10px 0;
+        }
+        
+        .pin-indicator.high {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+        }
+        
+        .pin-indicator.low {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .serial-card {
+            grid-column: 1 / -1;
+        }
+        
+        .serial-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .serial-data {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #222;
+            line-height: 1.5;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .timestamp {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 10px;
+        }
+        
+        .error {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { h, render } = preact;
+        const { useState, useEffect, useRef } = preact.hooks;
+        
+        // Get server URL from storage or defaults
+        function getServerUrl() {
+            const stored = sessionStorage.getItem('ws_server_url');
+            if (stored) return stored;
+            const persistent = localStorage.getItem('ws_server_url_persistent');
+            if (persistent) return persistent;
+            const params = new URLSearchParams(window.location.search);
+            const paramUrl = params.get('server');
+            if (paramUrl) return paramUrl;
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${protocol}//${window.location.hostname}:8765`;
+        }
+        
+        function Dashboard() {
+            const [connected, setConnected] = useState(false);
+            const [pins, setPins] = useState({});
+            const [serialData, setSerialData] = useState("");
+            const [timestamp, setTimestamp] = useState("");
+            const [error, setError] = useState("");
+            const [serverUrl, setServerUrl] = useState(getServerUrl());
+            const [tempUrl, setTempUrl] = useState(serverUrl);
+            const [showConfig, setShowConfig] = useState(false);
+            const ws = useRef(null);
+            
+            useEffect(() => {
+                connectWebSocket();
+                return () => {
+                    if (ws.current) ws.current.close();
+                };
+            }, [serverUrl]);
+            
+            function connectWebSocket() {
+                try {
+                    ws.current = new WebSocket(serverUrl);
+                    ws.current.onopen = () => {
+                        setConnected(true);
+                        setError("");
+                    };
+                    ws.current.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data.gpio) setPins(data.gpio);
+                            if (data.serial) setSerialData(data.serial);
+                            if (data.timestamp) setTimestamp(new Date(data.timestamp).toLocaleTimeString());
+                        } catch (e) {
+                            console.error("Error parsing:", e);
+                        }
+                    };
+                    ws.current.onerror = () => setError("Connection error");
+                    ws.current.onclose = () => {
+                        setConnected(false);
+                        setTimeout(connectWebSocket, 3000);
+                    };
+                } catch (e) {
+                    setError(`Failed: ${e.message}`);
+                    setTimeout(connectWebSocket, 3000);
+                }
+            }
+            
+            function handleConnect() {
+                if (tempUrl.trim()) {
+                    sessionStorage.setItem('ws_server_url', tempUrl.trim());
+                    setServerUrl(tempUrl.trim());
+                    setShowConfig(false);
+                }
+            }
+            
+            function handlePersistent() {
+                if (tempUrl.trim()) {
+                    localStorage.setItem('ws_server_url_persistent', tempUrl.trim());
+                    sessionStorage.setItem('ws_server_url', tempUrl.trim());
+                    setServerUrl(tempUrl.trim());
+                    setShowConfig(false);
+                }
+            }
+            
+            function handleReset() {
+                sessionStorage.removeItem('ws_server_url');
+                localStorage.removeItem('ws_server_url_persistent');
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const defaultUrl = `${protocol}//${window.location.hostname}:8765`;
+                setTempUrl(defaultUrl);
+                setServerUrl(defaultUrl);
+                setShowConfig(false);
+            }
+            
+            return h("div", null,
+                h("div", { className: "container" },
+                    h("div", { className: "header" },
+                        h("h1", null, "🎛️ RPi Dashboard"),
+                        h("div", { className: "status" },
+                            h("div", { className: `status-indicator ${connected ? 'connected' : 'disconnected'}` }),
+                            h("span", null, connected ? 'Connected' : 'Disconnected')
+                        )
+                    ),
+                    error && h("div", { className: "error" }, error),
+                    h("div", { className: "grid" },
+                        Object.entries(pins).map(([pin, state]) =>
+                            h("div", { key: pin, className: "card pin-card" },
+                                h("div", { className: "pin-label" }, `GPIO ${pin}`),
+                                h("div", { className: `pin-indicator ${state ? 'high' : 'low'}` }),
+                                h("div", { className: `pin-state ${state ? 'high' : 'low'}` }, state ? 'HIGH' : 'LOW'),
+                                h("div", { className: "timestamp" }, timestamp)
+                            )
+                        ),
+                        h("div", { className: "card serial-card" },
+                            h("div", { className: "serial-title" }, "📡 Serial Data"),
+                            h("div", { className: "serial-data" }, serialData || "No data..."),
+                            h("div", { className: "timestamp" }, timestamp)
+                        )
+                    )
+                ),
+                h("div", { className: "server-url-display", onClick: () => setShowConfig(true) }, `🔧 ${serverUrl}`),
+                showConfig && h("div", { className: "config-overlay", onClick: (e) => e.target === e.currentTarget && setShowConfig(false) },
+                    h("div", { className: "config-modal" },
+                        h("h2", null, "Server Configuration"),
+                        h("div", { className: "config-group" },
+                            h("label", { htmlFor: "server-url" }, "WebSocket Server URL"),
+                            h("input", {
+                                id: "server-url",
+                                type: "text",
+                                value: tempUrl,
+                                onInput: (e) => setTempUrl(e.target.value),
+                                placeholder: "ws://192.168.1.100:8765"
+                            }),
+                            h("div", { className: "config-help" }, "Format: ws://HOST:PORT or wss://HOST:PORT")
+                        ),
+                        h("div", { className: "config-group" },
+                            h("label", null, "Current Connection"),
+                            h("div", { className: "config-help" }, `Status: ${connected ? '✅ Connected' : '❌ Disconnected'}\nURL: ${serverUrl}`)
+                        ),
+                        h("div", { className: "config-buttons" },
+                            h("button", { className: "btn-connect", onClick: handleConnect }, "Connect (Session)"),
+                            h("button", { className: "btn-connect", style: {backgroundColor: '#16a34a'}, onClick: handlePersistent }, "Save & Connect"),
+                            h("button", { className: "btn-reset", onClick: handleReset }, "Reset")
+                        )
+                    )
+                )
+            );
+        }
+        
+        render(h(Dashboard), document.getElementById('root'));
+    </script>
+</body>
+</html>
