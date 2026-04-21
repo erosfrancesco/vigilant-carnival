@@ -1,97 +1,48 @@
-const { useState, useEffect, useRef } = React;
-import { getServerUrl, getGPIOLabel } from './utils.js';
+const { useState, useEffect } = React;
+import { getGPIOLabel } from './utils.js';
 
 function Dashboard() {
-    const [connected, setConnected] = useState(false);
     const [pins, setPins] = useState({});
     const [serialData, setSerialData] = useState('');
     const [timestamp, setTimestamp] = useState('');
-    const [error, setError] = useState('');
-    const [serverUrl, setServerUrl] = useState(getServerUrl());
-    const [tempUrl, setTempUrl] = useState(serverUrl);
-    const [showConfig, setShowConfig] = useState(false);
-    const ws = useRef(null);
+
+    // Use WebSocket connection hook
+    const {
+        connected,
+        serverUrl,
+        tempUrl,
+        showConfig,
+        error,
+        ws,
+        handleConnect,
+        handlePersistent,
+        handleReset,
+        setTempUrl,
+        setShowConfig,
+    } = useWebSocketConnection();
 
     useEffect(() => {
-        connectWebSocket();
+        if (!ws.current) return;
 
-        return () => {
-            if (ws.current) {
-                ws.current.close();
+        ws.current.onmessage = event => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'init' || data.type === 'state') {
+                    if (data.gpio) {
+                        setPins(data.gpio);
+                    }
+                    if (data.serial) {
+                        setSerialData(data.serial);
+                    }
+                    if (data.timestamp) {
+                        setTimestamp(new Date(data.timestamp).toLocaleTimeString());
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing message:', e);
             }
         };
-    }, [serverUrl]);
-
-    function connectWebSocket() {
-        try {
-            ws.current = new WebSocket(serverUrl);
-
-            ws.current.onopen = () => {
-                console.log('Connected to WebSocket server');
-                setConnected(true);
-                setError('');
-            };
-
-            ws.current.onmessage = event => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'init' || data.type === 'state') {
-                        if (data.gpio) {
-                            setPins(data.gpio);
-                        }
-                        if (data.serial) {
-                            setSerialData(data.serial);
-                        }
-                        if (data.timestamp) {
-                            setTimestamp(new Date(data.timestamp).toLocaleTimeString());
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing message:', e);
-                }
-            };
-
-            ws.current.onerror = error => {
-                console.error('WebSocket error:', error);
-                setError('Connection error - check server address');
-            };
-
-            ws.current.onclose = () => {
-                console.log('Disconnected from WebSocket server');
-                setConnected(false);
-                setTimeout(() => connectWebSocket(), 3000);
-            };
-        } catch (e) {
-            setError(`Failed to connect: ${e.message}`);
-            setTimeout(() => connectWebSocket(), 3000);
-        }
-    }
-
-    function handleConnect() {
-        if (!tempUrl.trim()) return;
-        sessionStorage.setItem('ws_server_url', tempUrl.trim());
-        setServerUrl(tempUrl.trim());
-        setShowConfig(false);
-    }
-
-    function handlePersistent() {
-        if (!tempUrl.trim()) return;
-        localStorage.setItem('ws_server_url_persistent', tempUrl.trim());
-        sessionStorage.setItem('ws_server_url', tempUrl.trim());
-        setServerUrl(tempUrl.trim());
-        setShowConfig(false);
-    }
-
-    function handleReset() {
-        sessionStorage.removeItem('ws_server_url');
-        localStorage.removeItem('ws_server_url_persistent');
-
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const defaultUrl = `${protocol}//${window.location.hostname}:8765`;
-        setTempUrl(defaultUrl);
-        setServerUrl(defaultUrl);
-        setShowConfig(false);
-    }
+    }, [ws]);
 
     return (
         <>
