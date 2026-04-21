@@ -1,241 +1,275 @@
-# vigilant-carnival 🎛️
+# Raspberry Pi WebSocket Dashboard
 
-A lightweight, production-ready template for building real-time monitoring dashboards on Raspberry Pi using Python WebSocket server and React/Preact frontend.
-
-**Perfect for:**
-- 🔌 GPIO pin monitoring
-- 📡 Serial device integration
-- 📊 Real-time sensor dashboards
-- 🚀 IoT projects on Raspberry Pi
-- 💻 Embedded system monitoring
+A lightweight template for creating real-time monitoring dashboards on Raspberry Pi using Python WebSocket server and React dashboard.
 
 ## Features
 
-✅ **Lightweight WebSocket Server** - Pure Python with asyncio, ~100 lines minimal version
-✅ **GPIO Monitoring** - Real-time state of all pins
-✅ **Serial Data** - Receive and display serial port data
-✅ **Remote Dashboard** - Run on external PC/phone/tablet easily
-✅ **Multiple Dashboards** - React, Preact, or Vanilla JS - all three work
-✅ **Responsive UI** - Works on desktop, tablet, mobile
-✅ **Low Resource** - Optimized for Raspberry Pi Zero
-✅ **Extensible** - Easy to add sensors, controls, logging
-✅ **Zero Dependencies** - Optional libraries, falls back to simulation
-
-## Quick Start
-
-```bash
-# Install dependencies
-pip3 install websockets
-
-# Start server
-cd rpi-dashboard/server
-python3 ws_server.py
-
-# In another terminal, serve dashboard
-cd rpi-dashboard/dashboard
-python3 -m http.server 8080
-```
-
-Open **http://localhost:8080** in your browser.
-
-## 🌐 Remote Dashboard (On External PC)
-
-The dashboard can run on a **completely separate machine** from the Raspberry Pi:
-
-```bash
-# Raspberry Pi: Start server
-cd rpi-dashboard/server
-python3 ws_server.py
-# Note the IP: 192.168.1.100
-
-# External PC: Serve dashboard
-cd rpi-dashboard/dashboard
-python3 -m http.server 8080
-
-# Browser: Open http://localhost:8080
-# Click 🔧 icon → Enter: ws://192.168.1.100:8765
-# Click "Save & Connect"
-```
-
-**Works on:**
-- 💻 PC/Laptop
-- 📱 Phone/Tablet (same WiFi)
-- ☁️ Cloud (with configuration)
-- 🌍 Remote access (with port forwarding/VPN)
+✅ **Lightweight WebSocket Server** - Pure Python with asyncio  
+✅ **GPIO Monitoring** - Real-time state monitoring of GPIO pins  
+✅ **Serial Data** - Receive and display data from serial devices  
+✅ **Modern Dashboard** - React-based UI with real-time updates  
+✅ **Responsive Design** - Works on desktop, tablet, and mobile  
+✅ **Low Resource Usage** - Optimized for Raspberry Pi  
 
 ## Project Structure
 
 ```
 rpi-dashboard/
 ├── server/
-│   ├── ws_server.py              # Main WebSocket server
-│   ├── ws_server_gpiozero.py     # gpiozero variant
-│   ├── ws_server_minimal.py      # Minimal version (~100 lines)
-│   ├── config.py                 # Configuration
-│   ├── extensions.py             # Sensor examples & extensions
-│   └── requirements.txt           # Dependencies
-│
-├── dashboard/
-│   ├── index.html                # React dashboard
-│   ├── index-preact.html         # Preact (lightweight)
-│   ├── index-vanilla.html        # Vanilla JS (no deps)
-│   ├── serve.sh                  # Quick server script
-│
-├── start.sh                      # One-command startup
-├── README.md                     # Full documentation
-├── QUICKSTART.md                 # Quick start guide
-└── .gitignore
+│   ├── ws_server.py          # Main WebSocket server
+│   ├── config.py             # Configuration settings
+│   └── requirements.txt       # Python dependencies
+└── dashboard/
+    └── index.html            # React dashboard (standalone)
 ```
 
-## Dashboard Variants
+## Installation
 
-Choose the frontend that fits your needs:
+### 1. Install Python Dependencies
 
-| Dashboard | Size | Dependencies | Best For |
-|-----------|------|--------------|----------|
-| **React** | 18 KB | React 18 CDN | Full-featured apps |
-| **Preact** | 3 KB | Preact 10 CDN | Embedded systems |
-| **Vanilla JS** | 8 KB | None | Minimal overhead |
+```bash
+cd server
+pip install -r requirements.txt
+```
 
-All three connect to the same WebSocket server!
+**Optional: Raspberry Pi GPIO Support**
 
-## Server Variants
+On Raspberry Pi, also install:
+```bash
+pip install RPi.GPIO
+# or use gpiozero for newer kernels:
+pip install gpiozero
+```
 
-| Server | LOC | Dependencies | Features |
-|--------|-----|--------------|----------|
-| **ws_server.py** | ~200 | websockets | Full-featured, logging |
-| **ws_server_gpiozero.py** | ~100 | gpiozero | Modern, object-oriented |
-| **ws_server_minimal.py** | ~70 | websockets | Bare minimum |
+**Optional: Serial Support**
 
-## API
+For serial data monitoring:
+```bash
+pip install pyserial
+```
 
-### WebSocket Message Format
+### 2. Configure Settings
 
-**Server → Client (state update):**
+Edit `server/config.py` to match your setup:
+
+```python
+GPIO_PINS = [17, 27, 22, 23]      # Pins to monitor (BCM numbering)
+SERIAL_DEVICE = "/dev/ttyACM0"    # Serial port device
+UPDATE_INTERVAL = 1.0             # Update frequency (seconds)
+```
+
+## Running
+
+### Start the WebSocket Server
+
+```bash
+cd server
+python3 ws_server.py
+```
+
+The server will start on `ws://0.0.0.0:8765`
+
+### Access the Dashboard
+
+1. **Local Access**: Open `file:///path/to/dashboard/index.html` in a browser
+2. **Network Access**: Serve with a web server:
+
+```bash
+cd dashboard
+python3 -m http.server 8080
+```
+
+Then open `http://localhost:8080` (or your RPi IP)
+
+## API Reference
+
+### WebSocket Messages
+
+#### Client receives (state update):
 ```json
 {
     "type": "state",
     "timestamp": "2024-04-20T12:34:56.789012",
-    "gpio": {"17": true, "27": false, "22": true, "23": false},
+    "gpio": {
+        "17": true,
+        "27": false,
+        "22": true,
+        "23": false
+    },
     "serial": "sensor_data_here"
 }
 ```
 
-**Client → Server (commands):**
+#### Client receives (initialization):
 ```json
-{"type": "ping"}
-{"type": "get_state"}
-{"type": "set_pin", "pin": 17, "value": true}
+{
+    "type": "init",
+    "timestamp": "2024-04-20T12:34:56.789012",
+    "gpio": {
+        "17": true,
+        "27": false,
+        "22": true,
+        "23": false
+    },
+    "pins": [17, 27, 22, 23]
+}
 ```
 
-## Customization
+#### Client can send (request state):
+```json
+{
+    "type": "get_state"
+}
+```
 
-### Add Custom Sensors
+#### Client can send (ping/keep-alive):
+```json
+{
+    "type": "ping"
+}
+```
 
-Edit `server/extensions.py` - includes examples for:
-- DHT22 temperature/humidity
-- HC-SR04 ultrasonic distance
-- MPU6050 accelerometer/gyroscope
-- PWM/servo control
-- Data logging
+## GPIO Pin Setup
 
-### Modify Dashboard
+### Using BCM Pin Numbering
 
-Edit HTML files to add:
-- Custom gauges
-- Charts
-- Control buttons
-- Historical graphs
+This template uses BCM (Broadcom) pin numbering. Here's a reference for common Raspberry Pi GPIO pins:
 
-### Run as System Service
+```
+Raspberry Pi 4/3 GPIO Pins (BCM):
+Pin  GPIO   Function
+  3  GPIO2  I2C SDA
+  5  GPIO3  I2C SCL
+  7  GPIO4  General Purpose
+  8  GPIO17 General Purpose
+  9  GPIO27 General Purpose
+ 10  GPIO22 General Purpose
+ 11  GPIO23 General Purpose
+```
+
+### Setting Up Input Pins
+
+```python
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # Pull-down
+# or
+GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)    # Pull-up
+```
+
+## Serial Port Configuration
+
+To find available serial devices:
 
 ```bash
+ls /dev/tty* /dev/cu*
+```
+
+Common devices:
+- `/dev/ttyACM0` - Arduino, CH340
+- `/dev/ttyUSB0` - USB cable
+- `/dev/ttyAMA0` - Built-in UART (Raspberry Pi)
+
+## Performance Tips
+
+1. **Reduce Update Interval**: Change `UPDATE_INTERVAL` in config.py (careful: too low = CPU spike)
+2. **Limit GPIO Pins**: Only monitor pins you need
+3. **Use Pull-Up/Pull-Down**: Properly configure pins to reduce noise
+4. **Optimize Dashboard**: Disable serial data if not needed
+5. **Use Systemd Daemon**: Run server as system service for auto-start
+
+## Running as System Service
+
+Create `/etc/systemd/system/rpi-dashboard.service`:
+
+```ini
+[Unit]
+Description=Raspberry Pi WebSocket Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/rpi-dashboard/server
+ExecStart=/usr/bin/python3 ws_server.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+```bash
+sudo systemctl daemon-reload
 sudo systemctl enable rpi-dashboard
 sudo systemctl start rpi-dashboard
 ```
 
-See [QUICKSTART.md](QUICKSTART.md#auto-start-on-boot) for full instructions.
-
-## Performance
-
-- **Raspberry Pi Zero**: 1-2% CPU, 20-30 MB RAM
-- **Raspberry Pi 4**: < 0.5% CPU, 15-20 MB RAM
-- **Update Interval**: Configurable (default 1 second)
-- **Max Clients**: 100+ concurrent connections
-
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Connection refused | Check server is running: `ps aux \| grep ws_server` |
-| GPIO not found | Install: `pip3 install RPi.GPIO` |
-| High CPU usage | Increase UPDATE_INTERVAL in config.py |
-| Serial not working | Check device: `ls /dev/tty*` and permissions |
+### WebSocket Connection Fails
+- Check firewall: `sudo ufw allow 8765/tcp`
+- Verify server is running: `ps aux | grep ws_server`
+- Check IP address: `hostname -I`
 
-See [QUICKSTART.md](QUICKSTART.md#troubleshooting) for more help.
+### GPIO Not Working
+- Run as root or with GPIO permissions
+- Verify pins: `gpio readall`
+- Check pull-up/pull-down configuration
 
-## Security Notes
+### Serial Port Not Found
+- List devices: `ls -la /dev/tty*`
+- Check permissions: `sudo usermod -a -G dialout pi`
+- Verify baud rate matches device
 
-⚠️ This template is **not secure for public internet**. For production:
-- Add authentication
-- Use WSS (WebSocket Secure)
-- Restrict firewall access
-- Run as non-root user
+### High CPU Usage
+- Increase `UPDATE_INTERVAL`
+- Reduce number of GPIO pins monitored
+- Close unnecessary browser tabs
 
-## Requirements
+## Customization
 
-- Python 3.6+
-- Raspberry Pi 2/3/4/Zero/Zero W
-- websockets library: `pip3 install websockets`
-- (Optional) RPi.GPIO or gpiozero for hardware GPIO
+### Add More Pins
 
-## Installation
-
-**On Raspberry Pi:**
-
-```bash
-# Install Python3 and pip
-sudo apt update
-sudo apt install python3 python3-pip
-
-# Clone this repo
-git clone https://github.com/erosfrancesco/vigilant-carnival.git
-cd vigilant-carnival/rpi-dashboard
-
-# Install dependencies
-pip3 install -r server/requirements.txt
-
-# Optional: GPIO support
-pip3 install RPi.GPIO
+Edit `server/config.py`:
+```python
+GPIO_PINS = [17, 27, 22, 23, 24, 25]  # Add pin 24 and 25
 ```
 
-## Documentation
+### Add Output Pins (PWM, Relay Control)
 
-- 📖 [Full README](rpi-dashboard/README.md) - Complete documentation
-- ⚡ [Quick Start](rpi-dashboard/QUICKSTART.md) - Get running in 2 minutes
-- 🌐 [Remote Dashboard Setup](rpi-dashboard/REMOTE-SETUP.md) - Run on external PC (step-by-step)
-- 🚀 [Deployment Guide](rpi-dashboard/DEPLOYMENT.md) - Advanced deployment scenarios
-- 🔧 [Structure Guide](rpi-dashboard/STRUCTURE.md) - Directory and file guide
+Modify `ws_server.py` to handle pin control messages:
 
-## Examples
+```python
+elif data.get("type") == "set_pin":
+    pin = data.get("pin")
+    value = data.get("value")
+    if RPI_AVAILABLE:
+        GPIO.output(pin, value)
+```
 
-See real-world examples in `server/extensions.py`:
-- Temperature/humidity sensor (DHT22)
-- Distance sensor (HC-SR04)
-- Accelerometer (MPU6050)
-- PWM motor control
-- Servo control
-- Data logging to CSV
-- System health monitoring
+### Custom Sensor Integration
+
+Add sensor reading functions and integrate with broadcast loop:
+
+```python
+def read_dht_sensor():
+    # Read humidity/temperature
+    return {"temp": 25.5, "humidity": 60}
+
+# Then include in broadcast message:
+message["sensors"] = read_dht_sensor()
+```
 
 ## License
 
-MIT License - Use freely in your projects!
+MIT License - Feel free to use and modify for your projects.
 
-## Contributing
+## Support
 
-Issues and pull requests welcome! Help improve this template.
-
----
-
-Made with ❤️ for Raspberry Pi enthusiasts
+For issues or questions, check:
+- WebSocket logs (enable DEBUG logging)
+- Browser console (F12 > Console tab)
+- System logs: `journalctl -u rpi-dashboard -f`
