@@ -30,23 +30,41 @@
         const getGPIOLabel = window.getGPIOLabel;
         
         function Dashboard() {
-            const [connected, setConnected] = useState(false);
+            // Use WebSocket connection hook
+            const {
+                connected,
+                serverUrl,
+                tempUrl,
+                showConfig,
+                error,
+                ws,
+                handleConnect,
+                handlePersistent,
+                handleReset,
+                setTempUrl,
+                setShowConfig,
+            } = useWebSocketConnection();
+
+            // const [connected, setConnected] = useState(false);
             const [pins, setPins] = useState({});
             const [serialData, setSerialData] = useState("");
             const [timestamp, setTimestamp] = useState("");
-            const [error, setError] = useState("");
-            const [serverUrl, setServerUrl] = useState(getServerUrl());
-            const [tempUrl, setTempUrl] = useState(serverUrl);
-            const [showConfig, setShowConfig] = useState(false);
-            const ws = useRef(null);
+            // const [error, setError] = useState("");
+            // const [serverUrl, setServerUrl] = useState(getServerUrl());
+            // const [tempUrl, setTempUrl] = useState(serverUrl);
+            // const [showConfig, setShowConfig] = useState(false);
+            // const ws = useRef(null);
             
+            /*
             useEffect(() => {
                 connectWebSocket();
                 return () => {
                     if (ws.current) ws.current.close();
                 };
             }, [serverUrl]);
+            /**/
             
+            /*
             function connectWebSocket() {
                 try {
                     ws.current = new WebSocket(serverUrl);
@@ -74,7 +92,9 @@
                     setTimeout(connectWebSocket, 3000);
                 }
             }
+            /**/
             
+            /*
             function handleConnect() {
                 if (tempUrl.trim()) {
                     sessionStorage.setItem('ws_server_url', tempUrl.trim());
@@ -101,6 +121,7 @@
                 setServerUrl(defaultUrl);
                 setShowConfig(false);
             }
+            /**/
             
             return h("div", null,
                 h("div", { className: "max-w-4xl mx-auto" },
