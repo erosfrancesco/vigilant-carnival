@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Main dashboard styling moved from index.html for maintainability */
 * {
     margin: 0;

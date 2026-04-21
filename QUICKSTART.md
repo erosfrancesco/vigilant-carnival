@@ -7,12 +7,18 @@
 cd /tmp
 wget https://github.com/your-repo/archive/main.zip
 unzip main.zip
-cd vigilant-carnival/rpi-dashboard
+cd vigilant-carnival
 
 # 2. Install Python dependencies
 pip3 install -r server/requirements.txt
 
-# 3. Optional: Install GPIO support
+# 3. Install dashboard dependencies
+cd dashboard
+npm install
+npm run build-css
+cd ..
+
+# 4. Optional: Install GPIO support
 pip3 install RPi.GPIO
 # Or for newer OS:
 pip3 install gpiozero
@@ -99,7 +105,7 @@ Choose the dashboard that best fits your needs:
 - **`index-vanilla.html`** - Vanilla JavaScript (no dependencies) - Simplest implementation
 ### PC mock server
 
-- **`mock_server.py`** - Run from `rpi-dashboard/dashboard` to simulate GPIO, serial and sensor data for dashboard testing
+- **`mock_server.py`** - Run from `dashboard` to simulate GPIO, serial and sensor data for dashboard testing
 All three connect to the same WebSocket server!
 
 ## Troubleshooting
@@ -248,7 +254,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/rpi-dashboard/server
+WorkingDirectory=/home/pi/vigilant-carnival/server
 ExecStart=/usr/bin/python3 ws_server.py
 Restart=always
 RestartSec=10
@@ -276,7 +282,7 @@ sudo journalctl -u rpi-dashboard -f
 crontab -e
 
 # Add this line:
-@reboot /home/pi/rpi-dashboard/start.sh > /tmp/dashboard.log 2>&1
+@reboot /home/pi/vigilant-carnival/start.sh > /tmp/dashboard.log 2>&1
 ```
 
 ## Widgets & Data Visualization 📊

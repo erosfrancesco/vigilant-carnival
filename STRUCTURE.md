@@ -3,7 +3,7 @@
 ## 📁 Directory Overview
 
 ```
-rpi-dashboard/
+vigilant-carnival/
 ├── README.md                          # Full documentation
 ├── QUICKSTART.md                      # Quick start guide (start here!)
 ├── STRUCTURE.md                       # This file
@@ -23,6 +23,11 @@ rpi-dashboard/
     ├── index.html                     # ⭐ React dashboard (default)
     ├── index-preact.html              # Lightweight Preact version
     ├── index-vanilla.html             # Vanilla JS (no dependencies)
+    ├── dashboard.css                  # Source CSS with Tailwind
+    ├── dashboard-built.css            # Built CSS
+    ├── tailwind.config.js             # Tailwind configuration
+    ├── package.json                   # Node.js dependencies
+    ├── .stylelintrc.json              # CSS linting config
     └── serve.sh                       # HTTP server script
 ```
 
@@ -31,8 +36,14 @@ rpi-dashboard/
 ### 1. **Install Dependencies (1 minute)**
 
 ```bash
+# Python dependencies
 cd server
 pip3 install -r requirements.txt
+
+# Dashboard dependencies
+cd ../dashboard
+npm install
+npm run build-css
 ```
 
 ### 2. **Start Server (Terminal 1)**

@@ -32,7 +32,7 @@ Complete guide for running the dashboard on a completely separate PC from the Ra
 **Terminal on RPi:**
 
 ```bash
-cd /path/to/rpi-dashboard
+cd /path/to/vigilant-carnival
 
 # Option A: Automatic (recommended)
 ./start.sh
@@ -66,13 +66,13 @@ Copy the `dashboard/` folder to your external PC:
 **Option A: Direct File Copy**
 ```bash
 # Copy dashboard folder to your PC
-cp -r rpi-dashboard/dashboard/ ~/MyDashboard/
+cp -r dashboard/ ~/MyDashboard/
 ```
 
 **Option B: Clone Repository**
 ```bash
 git clone https://github.com/erosfrancesco/vigilant-carnival.git
-cd vigilant-carnival/rpi-dashboard
+cd vigilant-carnival
 ```
 
 ---

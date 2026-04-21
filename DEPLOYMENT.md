@@ -29,7 +29,7 @@ The dashboard can now run on a completely separate machine (PC, laptop, tablet, 
 ### 1. **Server Setup (Raspberry Pi)**
 
 ```bash
-cd rpi-dashboard/server
+cd server
 python3 ws_server.py
 ```
 
@@ -44,7 +44,7 @@ hostname -I
 You have three options to serve the dashboard:
 
 #### Option A: Direct Browser File (Simplest)
-1. Copy `rpi-dashboard/dashboard/` to your PC
+1. Copy `dashboard/` to your PC
 2. Open in browser: `File → Open File` → select `index.html`
 3. Click the 🔧 icon in bottom-right
 4. Enter server address: `ws://192.168.1.100:8765` (use your RPi IP)
@@ -53,7 +53,7 @@ You have three options to serve the dashboard:
 #### Option B: Simple HTTP Server
 ```bash
 # On external PC
-cd rpi-dashboard/dashboard
+cd dashboard
 python3 -m http.server 8080
 
 # Then open in browser: http://localhost:8080
@@ -312,7 +312,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/opt/rpi-dashboard/dashboard
+WorkingDirectory=/opt/vigilant-carnival/dashboard
 ExecStart=/usr/bin/python3 -m http.server 8080
 Environment="RPI_SERVER_URL=ws://192.168.1.100:8765"
 Restart=always

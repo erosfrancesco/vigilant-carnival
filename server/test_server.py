@@ -49,7 +49,7 @@ async def test_server(host="localhost", port=8765):
         print(f"❌ Connection failed: Server not running on {uri}")
         print()
         print("Start the server with:")
-        print("  cd rpi-dashboard/server")
+        print("  cd server")
         print("  python3 ws_server.py")
     
     except Exception as e:

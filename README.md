@@ -1,26 +1,37 @@
 # Raspberry Pi WebSocket Dashboard
 
-A lightweight template for creating real-time monitoring dashboards on Raspberry Pi using Python WebSocket server and React dashboard.
+A lightweight template for creating real-time monitoring dashboards on Raspberry Pi using Python WebSocket server and React dashboard with Tailwind CSS.
 
 ## Features
 
 ✅ **Lightweight WebSocket Server** - Pure Python with asyncio  
 ✅ **GPIO Monitoring** - Real-time state monitoring of GPIO pins  
 ✅ **Serial Data** - Receive and display data from serial devices  
-✅ **Modern Dashboard** - React-based UI with real-time updates  
+✅ **Modern Dashboard** - React-based UI with Tailwind CSS for responsive design  
 ✅ **Responsive Design** - Works on desktop, tablet, and mobile  
 ✅ **Low Resource Usage** - Optimized for Raspberry Pi  
 
 ## Project Structure
 
 ```
-rpi-dashboard/
+vigilant-carnival/
 ├── server/
 │   ├── ws_server.py          # Main WebSocket server
 │   ├── config.py             # Configuration settings
 │   └── requirements.txt       # Python dependencies
-└── dashboard/
-    └── index.html            # React dashboard (standalone)
+├── dashboard/
+│   ├── index.html            # React dashboard (standalone)
+│   ├── dashboard.css         # Source CSS with Tailwind directives
+│   ├── dashboard-built.css   # Built CSS with Tailwind utilities
+│   ├── dashboard-app.jsx     # Main dashboard component
+│   ├── dashboard-widgets.jsx # Widget components
+│   ├── tailwind.config.js    # Tailwind configuration
+│   ├── package.json          # Node.js dependencies
+│   └── serve.sh              # HTTP server script
+├── README.md
+├── DEPLOYMENT.md
+├── QUICKSTART.md
+└── ...
 ```
 
 ## Installation
@@ -48,7 +59,15 @@ For serial data monitoring:
 pip install pyserial
 ```
 
-### 2. Configure Settings
+### 2. Install Dashboard Dependencies
+
+```bash
+cd dashboard
+npm install
+npm run build-css
+```
+
+### 3. Configure Settings
 
 Edit `server/config.py` to match your setup:
 
@@ -57,6 +76,28 @@ GPIO_PINS = [17, 27, 22, 23]      # Pins to monitor (BCM numbering)
 SERIAL_DEVICE = "/dev/ttyACM0"    # Serial port device
 UPDATE_INTERVAL = 1.0             # Update frequency (seconds)
 ```
+
+## Quick Start
+
+```bash
+# Install Python dependencies
+pip3 install websockets
+
+# Install dashboard dependencies
+cd dashboard
+npm install
+npm run build-css
+
+# Start server
+cd ../server
+python3 ws_server.py
+
+# In another terminal, serve dashboard
+cd ../dashboard
+python3 -m http.server 8080
+```
+
+Open **http://localhost:8080** in your browser.
 
 ## Running
 
@@ -71,9 +112,15 @@ The server will start on `ws://0.0.0.0:8765`
 
 ### Access the Dashboard
 
-1. **Local Access**: Open `file:///path/to/dashboard/index.html` in a browser
-2. **Network Access**: Serve with a web server:
+1. **Local Access**: Open `dashboard/index.html` in a browser
+2. **Network Access**: Use the provided script:
 
+```bash
+cd dashboard
+./serve.sh
+```
+
+Or manually:
 ```bash
 cd dashboard
 python3 -m http.server 8080
@@ -191,7 +238,7 @@ After=network.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/rpi-dashboard/server
+WorkingDirectory=/home/pi/vigilant-carnival/server
 ExecStart=/usr/bin/python3 ws_server.py
 Restart=always
 RestartSec=10

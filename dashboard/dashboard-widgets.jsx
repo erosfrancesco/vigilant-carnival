@@ -2,28 +2,28 @@ const { useEffect, useRef, useState } = React;
 
 function ValueDisplay({ label, value, unit, min, max, avg }) {
     return (
-        <div className="widget value-display">
-            <div className="value-label">{label}</div>
-            <div className="value-number">{value.toFixed(2)}</div>
-            {unit && <div className="value-unit">{unit}</div>}
+        <div className="bg-white rounded-lg p-5 shadow-lg text-center">
+            <div className="text-sm text-gray-600 uppercase tracking-wider mb-4">{label}</div>
+            <div className="text-5xl font-bold mb-2 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">{value.toFixed(2)}</div>
+            {unit && <div className="text-lg text-gray-500 mt-1">{unit}</div>}
             {(min !== undefined || max !== undefined || avg !== undefined) && (
-                <div className="value-stats">
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-gray-200">
                     {min !== undefined && (
-                        <div className="stat">
-                            <div className="stat-label">Min</div>
-                            <div className="stat-value">{min.toFixed(1)}</div>
+                        <div className="text-center">
+                            <div className="text-xs text-gray-500 uppercase mb-1">Min</div>
+                            <div className="text-xl font-bold text-gray-800">{min.toFixed(1)}</div>
                         </div>
                     )}
                     {avg !== undefined && (
-                        <div className="stat">
-                            <div className="stat-label">Avg</div>
-                            <div className="stat-value">{avg.toFixed(1)}</div>
+                        <div className="text-center">
+                            <div className="text-xs text-gray-500 uppercase mb-1">Avg</div>
+                            <div className="text-xl font-bold text-gray-800">{avg.toFixed(1)}</div>
                         </div>
                     )}
                     {max !== undefined && (
-                        <div className="stat">
-                            <div className="stat-label">Max</div>
-                            <div className="stat-value">{max.toFixed(1)}</div>
+                        <div className="text-center">
+                            <div className="text-xs text-gray-500 uppercase mb-1">Max</div>
+                            <div className="text-xl font-bold text-gray-800">{max.toFixed(1)}</div>
                         </div>
                     )}
                 </div>
@@ -93,16 +93,16 @@ function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMa
     }, [data, timestamps, label, color, yMin, yMax, yLabel]);
 
     return (
-        <div className="widget">
-            <div className="chart-title">{label}</div>
+        <div className="bg-white rounded-lg p-5 shadow-lg">
+            <div className="text-lg font-semibold text-gray-800 mb-2">{label}</div>
             {data.length > 0 ? (
-                <div className="chart-container">
+                <div className="relative h-64 mb-2">
                     <canvas ref={canvasRef}></canvas>
                 </div>
             ) : (
-                <div className="no-data">Aguardando dados...</div>
+                <div className="text-center text-gray-500 py-10 italic">Aguardando dados...</div>
             )}
-            <div className="chart-info">
+            <div className="text-sm text-gray-600 text-center">
                 {data.length > 0 && `${data.length} pontos registrados`}
             </div>
         </div>
@@ -149,9 +149,9 @@ function DashboardWithWidgets({ connected }) {
 
     return (
         <>
-            <div className="widget-section">
-                <div className="widget-title">📊 Sensores e Dados</div>
-                <div className="widgets-grid">
+            <div className="mb-8">
+                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📊 Sensores e Dados</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <ValueDisplay
                         label="Temperatura"
                         value={currentTemp}
@@ -170,9 +170,9 @@ function DashboardWithWidgets({ connected }) {
                     />
                 </div>
             </div>
-            <div className="widget-section">
-                <div className="widget-title">📈 Gráficos</div>
-                <div className="widgets-grid">
+            <div className="mb-8">
+                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📈 Gráficos</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <LineChartWidget
                         label="Temperatura (Últimos 60s)"
                         data={sensorHistory.temperature}
