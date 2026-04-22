@@ -13,7 +13,6 @@ function Dashboard() {
     const { connected } = useWebSocketConnection();
 
     const onData = data => {
-        console.log('data', data)
         if (data.type === 'init' || data.type === 'state') {
             if ('gpio' in data) {
                 setPins(data.gpio);
