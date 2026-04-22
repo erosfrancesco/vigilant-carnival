@@ -5,8 +5,6 @@ function Dashboard() {
     const [serialData, setSerialData] = useState('');
     const [timestamp, setTimestamp] = useState('');
     const [sensorHistory, setSensorHistory] = useState({
-        temperature: [],
-        humidity: [],
         timestamps: []
     });
 
@@ -27,11 +25,27 @@ function Dashboard() {
             }
 
             if (data.sensors) {
-                setSensorHistory(prev => ({
-                    temperature: [...prev.temperature, data.sensors.temperature].slice(-60),
-                    humidity: [...prev.humidity, data.sensors.humidity].slice(-60),
-                    timestamps: [...prev.timestamps, data.timestamp].slice(-60)
-                }));
+                setSensorHistory((prev) => {
+                    const timestamps = [...prev.timestamps, data.timestamp].slice(-60);
+
+                    const sensors = Object.keys(data.sensors);
+                    const values = sensors.reduce((acc, sensor) => {
+                        const { value, ...props } = data.sensors[sensor];
+                        acc[sensor] = prev[sensor] || {
+                            ...props,
+                            value: []
+                        };
+
+                        acc[sensor].value = [...acc[sensor].value, value].slice(-60);
+
+                        return acc;
+                    }, {});
+
+                    return {
+                        ...values,
+                        timestamps
+                    };
+                })
             }
         }
     }
@@ -44,8 +58,10 @@ function Dashboard() {
         <div className="max-w-4xl mx-auto text-center">
             <ConnectionSection onData={onData} onError={onError} />
             <BoardPinoutSection pins={pins} serialData={serialData} timestamp={timestamp} connected={connected} />
+
             <SensorsSection sensorHistory={sensorHistory} connected={connected} />
             <ChartsSection sensorHistory={sensorHistory} />
+            {/** */}
         </div>
     );
 }

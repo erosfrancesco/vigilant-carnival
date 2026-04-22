@@ -2,59 +2,67 @@ const { useEffect } = React;
 
 // TODO: - Should use labeled sensors instead of hardcoded temperature/humidity
 function SensorsSection({ sensorHistory }) {
-    const tempStats = window.calcStats(sensorHistory.temperature);
-    const humStats = window.calcStats(sensorHistory.humidity);
-    const currentTemp = sensorHistory.temperature[sensorHistory.temperature.length - 1] || 0;
-    const currentHum = sensorHistory.humidity[sensorHistory.humidity.length - 1] || 0;
+    // console.log('Sensor history:', sensorHistory);
+    function computeValuesOf(sensor) {
+        const { value, ...sensorProps } = sensorHistory[sensor] || { value: [] };
+        const history = window.calcStats(value);
+        const current = value[value.length - 1] || 0;
+
+        return [
+            current,
+            history,
+            sensorProps
+        ];
+    };
+
+    const sensors = Object.keys(sensorHistory).filter(s => s !== 'timestamps');
 
     return (
         <div className="mb-8">
             <SectionTitle>📊 Sensors & Data</SectionTitle>
             <SectionLayout>
-                <ValueDisplay
-                    label="Temperature"
-                    value={currentTemp}
-                    unit="°C"
-                    min={tempStats.min}
-                    max={tempStats.max}
-                    avg={tempStats.avg}
-                />
-                <ValueDisplay
-                    label="Humidity"
-                    value={currentHum}
-                    unit="%"
-                    min={humStats.min}
-                    max={humStats.max}
-                    avg={humStats.avg}
-                />
+                {sensors.map(sensor => {
+                    const { value, ...sensorProps } = sensorHistory[sensor] || { value: [] };
+                    const { min, max, avg } = window.calcStats(value);
+                    const current = value[value.length - 1] || 0;
+
+                    return <ValueDisplay
+                        key={sensor}
+                        label={sensorProps.label || sensor}
+                        value={current}
+                        unit={sensorProps.unit || ''}
+                        min={min}
+                        max={max}
+                        avg={avg}
+                    />
+                })}
+
             </SectionLayout>
         </div>
     );
 }
 
 function ChartsSection({ sensorHistory }) {
+    const sensors = Object.keys(sensorHistory).filter(s => s !== 'timestamps');
+    const colorMap = ["#667eea", "#764ba2", "#ff6a00", "#ee0979", "#56ab2f", "#a8e063"];
+
     return (
         <div className="mb-8">
             <SectionTitle>📈 Charts</SectionTitle>
             <SectionLayout>
-                <LineChartWidget
-                    label="Temperature (Last 60s)"
-                    data={sensorHistory.temperature}
-                    timestamps={sensorHistory.timestamps}
-                    color="#667eea"
-                    yMin={15}
-                    yMax={30}
-                    yLabel="°C"
-                />
-                <LineChartWidget
-                    label="Humidity (Last 60s)"
-                    data={sensorHistory.humidity}
-                    timestamps={sensorHistory.timestamps}
-                    color="#764ba2"
-                    yMin={30}
-                    yMax={90}
-                    yLabel="%"
-                />
+                {sensors.map((sensor, i) => {
+                    const { value, ...sensorProps } = sensorHistory[sensor] || {};
+                    const chartColor = colorMap[i] || colorMap[0];
+
+                    return <LineChartWidget
+                        key={sensor}
+                        label={`${sensorProps.label || sensor} (Last 60s)`}
+                        data={value || []}
+                        timestamps={sensorHistory.timestamps}
+                        color={sensorProps.color || chartColor}
+                        yLabel={sensorProps.unit || ''}
+                    />
+                })}
             </SectionLayout>
         </div>
     );
@@ -122,7 +130,6 @@ function ConnectionOptions({ onClose }) {
         serverUrl,
         tempUrl,
         setTempUrl,
-        showConfig,
         setShowConfig,
         handleConnect,
         handlePersistent,
@@ -130,7 +137,6 @@ function ConnectionOptions({ onClose }) {
     } = useWebSocketConnection();
 
     const handleButtonClick = (action) => {
-        console.log('Executing action and closing config:', showConfig);
         action();
         onClose();
     }

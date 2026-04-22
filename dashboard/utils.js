@@ -26,7 +26,9 @@ function getGPIOLabel(pin) {
 }
 
 function calcStats(data) {
+    if (!Array.isArray(data)) return { min: 0, max: 0, avg: 0 };
     if (data.length === 0) return { min: 0, max: 0, avg: 0 };
+
     return {
         min: Math.min(...data),
         max: Math.max(...data),
@@ -133,9 +135,6 @@ function useWebSocketConnection() {
         handleReset,
         setTempUrl,
         setShowConfig,
-        setError,
-        setPins: null, // Will be handled by parent
-        setSerialData: null, // Will be handled by parent
-        setTimestamp: null, // Will be handled by parent
+        setError
     };
 }

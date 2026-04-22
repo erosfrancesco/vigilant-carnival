@@ -44,9 +44,21 @@ def generate_gpio_state() -> dict:
 def generate_sensor_readings() -> dict:
     now = datetime.utcnow().timestamp()
     return {
-        'temperature': round(22 + 4 * math.sin(now / 10) + random.uniform(-0.5, 0.5), 2),
-        'humidity': round(55 + 10 * math.cos(now / 12) + random.uniform(-1.5, 1.5), 2),
-        'pressure': round(1013 + 3 * math.sin(now / 18) + random.uniform(-0.3, 0.3), 2),
+        'temperature': {
+            'label': 'Temperature',
+            'unit': '°C',
+            'value': round(22 + 4 * math.sin(now / 10) + random.uniform(-0.5, 0.5), 2)
+        },
+        'humidity': {
+            'label': 'Humidity',
+            'unit': '%',
+            'value': round(55 + 10 * math.cos(now / 12) + random.uniform(-1.5, 1.5), 2)
+        },
+        'pressure': {
+            'label': 'Pressure',
+            'unit': 'hPa',
+            'value': round(1013 + 3 * math.sin(now / 18) + random.uniform(-0.3, 0.3), 2)
+        }
     }
 
 
