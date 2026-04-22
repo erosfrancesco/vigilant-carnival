@@ -1,3 +1,5 @@
+const { useEffect } = React;
+
 // TODO: - Should use labeled sensors instead of hardcoded temperature/humidity
 function SensorsSection({ sensorHistory }) {
     const tempStats = window.calcStats(sensorHistory.temperature);
@@ -76,8 +78,27 @@ function ConnectionSection({ onData, onError }) {
         connected,
         serverUrl,
         showConfig,
-        setShowConfig
+        setShowConfig,
+        ws
     } = useWebSocketConnection();
+
+    useEffect(() => {
+        if (!ws.current) return;
+
+        ws.current.onmessage = event => {
+            try {
+                const data = JSON.parse(event.data);
+                onData(data);
+            } catch (e) {
+                console.error('Error parsing message:', e);
+            }
+        };
+
+        ws.current.onerror = error => {
+            console.error('WebSocket error:', error);
+            onError(error);
+        };
+    }, [ws]); // Re-run effect if WebSocket instance changes
 
     return <div className="text-white mb-8 text-center">
         <h1 className="text-5xl mb-3">🎛️ Raspberry Pi Dashboard</h1>
@@ -148,6 +169,7 @@ function ConnectionOptions({ onClose }) {
         </div>
     </div>
 }
+
 
 //
 function SectionTitle({ children }) {

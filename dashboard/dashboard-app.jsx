@@ -13,15 +13,26 @@ function Dashboard() {
     const { connected } = useWebSocketConnection();
 
     const onData = data => {
+        console.log('data', data)
         if (data.type === 'init' || data.type === 'state') {
-            if (data.gpio) {
+            if ('gpio' in data) {
                 setPins(data.gpio);
             }
-            if (data.serial) {
+
+            if ('serial' in data) {
                 setSerialData(data.serial);
             }
+
             if (data.timestamp) {
                 setTimestamp(new Date(data.timestamp).toLocaleTimeString());
+            }
+
+            if (data.sensors) {
+                setSensorHistory(prev => ({
+                    temperature: [...prev.temperature, data.sensors.temperature].slice(-60),
+                    humidity: [...prev.humidity, data.sensors.humidity].slice(-60),
+                    timestamps: [...prev.timestamps, data.timestamp].slice(-60)
+                }));
             }
         }
     }

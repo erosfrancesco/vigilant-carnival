@@ -51,14 +51,13 @@ def generate_sensor_readings() -> dict:
 
 
 def create_state_message() -> str:
-    state = {
+    return json.dumps({
         'type': 'state',
         'timestamp': datetime.utcnow().isoformat(),
         'gpio': generate_gpio_state(),
         'sensors': generate_sensor_readings(),
         'serial': 'MOCK: hello from mock_server',
-    }
-    return json.dumps(state)
+    })
 
 
 def create_init_message() -> str:

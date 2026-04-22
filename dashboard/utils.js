@@ -62,9 +62,7 @@ function useWebSocketConnection() {
             ws.current.onmessage = event => {
                 try {
                     const data = JSON.parse(event.data);
-                    if (data.type === 'init' || data.type === 'state') {
-                        return data;
-                    }
+                    return data;
                 } catch (e) {
                     console.error('Error parsing message:', e);
                 }

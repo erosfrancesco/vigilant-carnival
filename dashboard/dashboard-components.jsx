@@ -57,7 +57,11 @@ function ValueDisplay({ label, value, unit, min, max, avg }) {
     );
 }
 
-function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMax, yLabel = '' }) {
+function LineChartWidget({ 
+    label, data, timestamps, 
+    color = '#667eea', 
+    yMin, yMax, yLabel = '' 
+}) {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
 
@@ -89,7 +93,7 @@ function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMa
                 }]
             },
             options: {
-                responsive: true,
+                // responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }

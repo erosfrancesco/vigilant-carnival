@@ -6,7 +6,8 @@
   "scripts": {
     "build-css": "tailwindcss -i dashboard.css -o dashboard-built.css --watch",
     "lint-css": "stylelint dashboard.css",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "mock": "python3 mock_server.py && ./serve.sh"
   },
   "keywords": [],
   "author": "",
