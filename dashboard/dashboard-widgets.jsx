@@ -1,5 +1,8 @@
 const { useEffect, useRef, useState } = React;
 
+// Ensure global functions are available
+const getGPIOLabel = window.getGPIOLabel || (() => 'GPIO');
+
 function ValueDisplay({ label, value, unit, min, max, avg }) {
     return (
         <div className="bg-white rounded-lg p-5 shadow-lg text-center">
@@ -100,10 +103,10 @@ function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMa
                     <canvas ref={canvasRef}></canvas>
                 </div>
             ) : (
-                <div className="text-center text-gray-500 py-10 italic">Aguardando dados...</div>
+                <div className="text-center text-gray-500 py-10 italic">Waiting for data...</div>
             )}
             <div className="text-sm text-gray-600 text-center">
-                {data.length > 0 && `${data.length} pontos registrados`}
+                {data.length > 0 && `${data.length} data points recorded`}
             </div>
         </div>
     );
@@ -150,10 +153,10 @@ function DashboardWithWidgets({ connected }) {
     return (
         <>
             <div className="mb-8">
-                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📊 Sensores e Dados</div>
+                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📊 Sensors & Data</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <ValueDisplay
-                        label="Temperatura"
+                        label="Temperature"
                         value={currentTemp}
                         unit="°C"
                         min={tempStats.min}
@@ -161,7 +164,7 @@ function DashboardWithWidgets({ connected }) {
                         avg={tempStats.avg}
                     />
                     <ValueDisplay
-                        label="Umidade"
+                        label="Humidity"
                         value={currentHum}
                         unit="%"
                         min={humStats.min}
@@ -171,10 +174,10 @@ function DashboardWithWidgets({ connected }) {
                 </div>
             </div>
             <div className="mb-8">
-                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📈 Gráficos</div>
+                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📈 Charts</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <LineChartWidget
-                        label="Temperatura (Últimos 60s)"
+                        label="Temperature (Last 60s)"
                         data={sensorHistory.temperature}
                         timestamps={sensorHistory.timestamps}
                         color="#667eea"
@@ -183,7 +186,7 @@ function DashboardWithWidgets({ connected }) {
                         yLabel="°C"
                     />
                     <LineChartWidget
-                        label="Umidade (Últimos 60s)"
+                        label="Humidity (Last 60s)"
                         data={sensorHistory.humidity}
                         timestamps={sensorHistory.timestamps}
                         color="#764ba2"

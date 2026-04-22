@@ -1,11 +1,8 @@
-
-import { getServerUrl } from './utils.js';
-
 // Custom hook for WebSocket connection management
 function useWebSocketConnection() {
     const [connected, setConnected] = React.useState(false);
-    const [serverUrl, setServerUrl] = React.useState(getServerUrl());
-    const [tempUrl, setTempUrl] = React.useState(serverUrl);
+    const [serverUrl, setServerUrl] = React.useState(window.getServerUrl());
+    const [tempUrl, setTempUrl] = React.useState(window.getServerUrl());
     const [showConfig, setShowConfig] = React.useState(false);
     const [error, setError] = React.useState('');
     const ws = React.useRef(null);

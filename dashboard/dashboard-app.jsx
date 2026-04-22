@@ -1,5 +1,4 @@
 const { useState, useEffect } = React;
-import { getGPIOLabel } from './utils.js';
 
 function Dashboard() {
     const [pins, setPins] = useState({});
@@ -60,7 +59,7 @@ function Dashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {Object.entries(pins).map(([pin, state]) => (
                         <div key={pin} className="bg-white rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
-                            <div className="text-sm text-gray-600 uppercase tracking-wide mb-3">{getGPIOLabel(pin)}</div>
+                            <div className="text-sm text-gray-600 uppercase tracking-wide mb-3">{window.getGPIOLabel(pin)}</div>
                             <div className={`w-15 h-15 rounded-full mx-auto my-3 shadow-md ${state ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-red-400 to-red-600'}`}></div>
                             <div className={`text-3xl font-bold my-4 min-h-15 flex items-center justify-center ${state ? 'text-green-500' : 'text-red-500'}`}>{state ? 'HIGH' : 'LOW'}</div>
                             <div className="text-sm text-gray-500 mt-3">{timestamp}</div>
