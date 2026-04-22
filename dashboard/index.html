@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,12 +12,15 @@
     <link rel="stylesheet" href="dashboard-built.css">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
+
 <body>
     <div id="root"></div>
-    
+
     <script src="utils.js"></script>
-    <script src="useWebSocketConnection.js"></script>
-    <script type="text/babel" src="dashboard-widgets.jsx"></script>
+    <script type="text/babel" src="components/WebSocketConnectionStatus.jsx"></script>
+    <script type="text/babel" src="dashboard-components.jsx"></script>
+    <script type="text/babel" src="dashboard-sections.jsx"></script>
     <script type="text/babel" src="dashboard-app.jsx"></script>
 </body>
+
 </html>

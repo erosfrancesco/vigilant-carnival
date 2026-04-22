@@ -1,4 +1,29 @@
-const { useEffect, useRef, useState } = React;
+const { useEffect, useRef } = React;
+
+function GPIOPinsDisplay({ pins, timestamp }) {
+    return (
+        <>
+            {Object.entries(pins).map(([pin, state]) => (
+                <div key={pin} className="bg-white rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
+                    <div className="text-sm text-gray-600 uppercase tracking-wide mb-3">{window.getGPIOLabel(pin)}</div>
+                    <div className={`w-15 h-15 rounded-full mx-auto my-3 shadow-md ${state ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-red-400 to-red-600'}`}></div>
+                    <div className={`text-3xl font-bold my-4 min-h-15 flex items-center justify-center ${state ? 'text-green-500' : 'text-red-500'}`}>{state ? 'HIGH' : 'LOW'}</div>
+                    <div className="text-sm text-gray-500 mt-3">{timestamp}</div>
+                </div>
+            ))}
+        </>
+    );
+}
+
+function SerialDataDisplay({ serialData, timestamp }) {
+    return (
+        <div className="bg-white rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300 col-span-full">
+            <div className="text-lg font-semibold text-gray-800 mb-4">📡 Serial Data</div>
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 font-mono max-h-48 overflow-y-auto text-gray-800 text-sm leading-relaxed break-all whitespace-pre-wrap">{serialData || <span className="text-gray-500 italic">No data received...</span>}</div>
+            <div className="text-sm text-gray-500 mt-3">{timestamp}</div>
+        </div>
+    );
+}
 
 // Ensure global functions are available
 const getGPIOLabel = window.getGPIOLabel || (() => 'GPIO');
@@ -109,93 +134,5 @@ function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMa
                 {data.length > 0 && `${data.length} data points recorded`}
             </div>
         </div>
-    );
-}
-
-function DashboardWithWidgets({ connected }) {
-    const [sensorHistory, setSensorHistory] = useState({
-        temperature: [],
-        humidity: [],
-        timestamps: []
-    });
-
-    useEffect(() => {
-        if (!connected) return;
-
-        const interval = setInterval(() => {
-            const temp = 20 + Math.sin(Date.now() / 10000) * 5 + Math.random() * 2;
-            const hum = 60 + Math.cos(Date.now() / 15000) * 15 + Math.random() * 5;
-
-            setSensorHistory(prev => ({
-                temperature: [...prev.temperature, temp].slice(-60),
-                humidity: [...prev.humidity, hum].slice(-60),
-                timestamps: [...prev.timestamps, new Date().toISOString()].slice(-60)
-            }));
-        }, 2000);
-
-        return () => clearInterval(interval);
-    }, [connected]);
-
-    const calcStats = data => {
-        if (data.length === 0) return { min: 0, max: 0, avg: 0 };
-        return {
-            min: Math.min(...data),
-            max: Math.max(...data),
-            avg: data.reduce((a, b) => a + b, 0) / data.length
-        };
-    };
-
-    const tempStats = calcStats(sensorHistory.temperature);
-    const humStats = calcStats(sensorHistory.humidity);
-    const currentTemp = sensorHistory.temperature[sensorHistory.temperature.length - 1] || 0;
-    const currentHum = sensorHistory.humidity[sensorHistory.humidity.length - 1] || 0;
-
-    return (
-        <>
-            <div className="mb-8">
-                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📊 Sensors & Data</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <ValueDisplay
-                        label="Temperature"
-                        value={currentTemp}
-                        unit="°C"
-                        min={tempStats.min}
-                        max={tempStats.max}
-                        avg={tempStats.avg}
-                    />
-                    <ValueDisplay
-                        label="Humidity"
-                        value={currentHum}
-                        unit="%"
-                        min={humStats.min}
-                        max={humStats.max}
-                        avg={humStats.avg}
-                    />
-                </div>
-            </div>
-            <div className="mb-8">
-                <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">📈 Charts</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <LineChartWidget
-                        label="Temperature (Last 60s)"
-                        data={sensorHistory.temperature}
-                        timestamps={sensorHistory.timestamps}
-                        color="#667eea"
-                        yMin={15}
-                        yMax={30}
-                        yLabel="°C"
-                    />
-                    <LineChartWidget
-                        label="Humidity (Last 60s)"
-                        data={sensorHistory.humidity}
-                        timestamps={sensorHistory.timestamps}
-                        color="#764ba2"
-                        yMin={30}
-                        yMax={90}
-                        yLabel="%"
-                    />
-                </div>
-            </div>
-        </>
     );
 }
