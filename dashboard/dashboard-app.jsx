@@ -31,8 +31,8 @@ function Dashboard() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <WebSocketConnectionStatus onData={onData} onError={onError} />
+        <div className="max-w-4xl mx-auto text-center">
+            <ConnectionSection onData={onData} onError={onError} />
             <BoardPinoutSection pins={pins} serialData={serialData} timestamp={timestamp} connected={connected} />
             <SensorsSection sensorHistory={sensorHistory} connected={connected} />
             <ChartsSection sensorHistory={sensorHistory} />
