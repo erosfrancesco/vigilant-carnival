@@ -57,10 +57,10 @@ function ValueDisplay({ label, value, unit, min, max, avg }) {
     );
 }
 
-function LineChartWidget({ 
-    label, data, timestamps, 
-    color = '#667eea', 
-    yMin, yMax, yLabel = '' 
+function LineChartWidget({
+    label, data, timestamps,
+    color = '#667eea',
+    yMin, yMax, yLabel = ''
 }) {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
@@ -94,6 +94,7 @@ function LineChartWidget({
             },
             options: {
                 // responsive: true,
+                animation: false, // 🔥 realtime feel
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
@@ -140,7 +141,7 @@ function LineChartWidget({
 
 function InputField({ label, onChange, children, className, ...props }) {
     const thisClasses = "w-full px-3 py-2 border border-gray-300 rounded-lg " +
-        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-black" + 
+        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-black" +
         (className ? ' ' + className : '');
 
     return (
