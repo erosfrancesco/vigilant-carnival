@@ -25,9 +25,6 @@ function SerialDataDisplay({ serialData, timestamp }) {
     );
 }
 
-// Ensure global functions are available
-const getGPIOLabel = window.getGPIOLabel || (() => 'GPIO');
-
 function ValueDisplay({ label, value, unit, min, max, avg }) {
     return (
         <div className="bg-white rounded-lg p-5 shadow-lg text-center">
@@ -136,3 +133,6 @@ function LineChartWidget({ label, data, timestamps, color = '#667eea', yMin, yMa
         </div>
     );
 }
+
+// TODO: - 
+function WebSocketConnectionStatus({ onData, onError }) { }

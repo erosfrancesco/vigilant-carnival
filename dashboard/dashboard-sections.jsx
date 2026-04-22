@@ -1,16 +1,7 @@
-const calcStats = data => {
-    if (data.length === 0) return { min: 0, max: 0, avg: 0 };
-    return {
-        min: Math.min(...data),
-        max: Math.max(...data),
-        avg: data.reduce((a, b) => a + b, 0) / data.length
-    };
-};
-
 // TODO: - Should use labeled sensors instead of hardcoded temperature/humidity
 function SensorsSection({ sensorHistory }) {
-    const tempStats = calcStats(sensorHistory.temperature);
-    const humStats = calcStats(sensorHistory.humidity);
+    const tempStats = window.calcStats(sensorHistory.temperature);
+    const humStats = window.calcStats(sensorHistory.humidity);
     const currentTemp = sensorHistory.temperature[sensorHistory.temperature.length - 1] || 0;
     const currentHum = sensorHistory.humidity[sensorHistory.humidity.length - 1] || 0;
 
@@ -79,7 +70,7 @@ function BoardPinoutSection({ pins, serialData, timestamp, connected }) {
 }
 
 
-
+//
 function SectionTitle({ children }) {
     return <div className="text-white text-2xl mb-4 font-semibold uppercase tracking-wide">
         {children}

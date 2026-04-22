@@ -25,9 +25,19 @@ function getGPIOLabel(pin) {
     return labels[pin] || `GPIO ${pin}`;
 }
 
+function calcStats(data) {
+    if (data.length === 0) return { min: 0, max: 0, avg: 0 };
+    return {
+        min: Math.min(...data),
+        max: Math.max(...data),
+        avg: data.reduce((a, b) => a + b, 0) / data.length
+    };
+};
+
 // Make them global
 window.getServerUrl = getServerUrl;
 window.getGPIOLabel = getGPIOLabel;
+window.calcStats = calcStats;
 
 
 // Custom hook for WebSocket connection management
