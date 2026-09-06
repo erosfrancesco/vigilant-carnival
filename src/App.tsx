@@ -1,5 +1,7 @@
 import { WebSocketStatus } from "./components/WebSocketStatus";
 import { GpioSettings } from "./gpio/GpioSettings";
+import { I2CSettings } from "./i2c/I2CSettings";
+import { DashboardSettings } from "./components/DashboardSettings";
 import { WebSocketProvider } from "./context/WebSocketProvider";
 import { GpioProvider } from "./context/GpioProvider";
 import { Sidebar } from "./components/Sidebar";
@@ -52,7 +54,9 @@ function AppContent({
           {activePage === "settings" ? (
             <>
               <WebSocketStatus />
+              <DashboardSettings />
               <GpioSettings />
+              <I2CSettings />
             </>
           ) : (
             <Dashboard />

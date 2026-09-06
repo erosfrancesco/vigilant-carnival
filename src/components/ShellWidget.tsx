@@ -4,7 +4,7 @@ import { Button, Input } from "../layouts/StyledComponents";
 import { useShell } from "../hooks/useShell";
 import { AutoScrollPanel } from "./AutoScrollPanel";
 
-export function ShellWebSocket() {
+export function ShellWidget() {
   const {
     shellErrors,
     shellMessages,

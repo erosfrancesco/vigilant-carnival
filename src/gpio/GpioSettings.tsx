@@ -3,10 +3,6 @@ import type { PinMode } from "../ws/protocol";
 import { CardPanel, Section, Subsection } from "../layouts/Section";
 import { Button, Checkbox, Input, Select } from "../layouts/StyledComponents";
 import { useGpioUI } from "./useGpioUI";
-import {
-  dashboardWidgets,
-  useWidgetVisibility,
-} from "../hooks/useWidgetVisibility";
 
 export function GpioSettings() {
   const {
@@ -27,7 +23,6 @@ export function GpioSettings() {
     pinModes.get(allowedPins[0]) ?? "input",
   );
   const supportsPwm = pwmPins.includes(selectedPin);
-  const { isWidgetVisible, setWidgetVisible } = useWidgetVisibility();
 
   useEffect(() => {
     if (!supportsPwm && selectedMode === "pwm") setSelectedMode("input");
@@ -44,7 +39,8 @@ export function GpioSettings() {
 
   return (
     <Section Title="GPIO Settings">
-      <Subsection>
+      <fieldset className="flex flex-col gap-6" disabled={!isConnected}>
+        <Subsection>
         <Input
           aria-label="GPIO refresh interval in seconds"
           className="w-24"
@@ -56,22 +52,9 @@ export function GpioSettings() {
           type="number"
           value={refreshInterval}
         />
-      </Subsection>
+        </Subsection>
 
-      <Subsection subtitle="Dashboard widgets">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {dashboardWidgets.map(({ id, label }) => (
-            <Checkbox
-              checked={isWidgetVisible(id)}
-              key={id}
-              label={label}
-              onChange={(event) => setWidgetVisible(id, event.target.checked)}
-            />
-          ))}
-        </div>
-      </Subsection>
-
-      <Subsection subtitle="PWM calibration">
+        <Subsection subtitle="PWM calibration">
         <Select
           id="calibration-pin"
           label="PWM pin"
@@ -84,9 +67,9 @@ export function GpioSettings() {
             </option>
           ))}
         </Select>
-      </Subsection>
+        </Subsection>
 
-      <Subsection subtitle="Select which pins to monitor">
+        <Subsection subtitle="Select which pins to monitor">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(6rem,1fr))] gap-3">
           {allowedPins.map((pin) => {
             return (
@@ -101,9 +84,9 @@ export function GpioSettings() {
             );
           })}
         </div>
-      </Subsection>
+        </Subsection>
 
-      <Subsection subtitle="Select pin mode">
+        <Subsection subtitle="Select pin mode">
         <p className="mb-4 text-sm text-slate-500">
           PWM is available only on GPIO 18.
         </p>
@@ -153,15 +136,9 @@ export function GpioSettings() {
             Apply mode
           </Button>
         </fieldset>
-      </Subsection>
+        </Subsection>
 
-      <Subsection subtitle="Pins settings">
-        <div className="grid grid-col-1 gap-4">
-          {allowedPins.map((pin) => {
-            return <GpioActions key={pin} pin={pin} />;
-          })}
-        </div>
-      </Subsection>
+      </fieldset>
     </Section>
   );
 }

@@ -4,6 +4,7 @@ export const dashboardWidgets = [
   { id: "pinout", label: "GPIO pinout" },
   { id: "gpio", label: "GPIO monitoring" },
   { id: "calibration", label: "PWM calibration" },
+  { id: "i2c", label: "I2C bus" },
   { id: "shell", label: "Remote shell" },
 ] as const;
 
@@ -13,6 +14,7 @@ const defaultVisibility: Record<WidgetId, boolean> = {
   pinout: true,
   gpio: true,
   calibration: true,
+  i2c: true,
   shell: true,
 };
 

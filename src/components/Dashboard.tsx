@@ -2,28 +2,33 @@ import { useState } from "react";
 import { GpioMonitor } from "../gpio/GpioMonitor";
 import { GpioWidget } from "../gpio/GpioWidget";
 import { GpioCalibration } from "../gpio/GpioCalibration";
-import { ShellWebSocket } from "./ShellWebSocket";
+import { ShellWidget } from "./ShellWidget";
 import { useWidgetLayout } from "../hooks/useWidgetLayout";
 import { useWidgetVisibility } from "../hooks/useWidgetVisibility";
+import { I2CWidget } from "../i2c/I2CWidget";
+import { useWebSocketContext } from "../context/WebSocketContext";
 
-const defaultWidgetOrder = ["pinout", "gpio", "calibration", "shell"] as const;
+const defaultWidgetOrder = ["pinout", "gpio", "calibration", "i2c", "shell"] as const;
 type WidgetId = (typeof defaultWidgetOrder)[number];
 
 const widgets: Record<WidgetId, React.ReactNode> = {
   pinout: <GpioMonitor />,
   gpio: <GpioWidget />,
   calibration: <GpioCalibration />,
-  shell: <ShellWebSocket />,
+  i2c: <I2CWidget />,
+  shell: <ShellWidget />,
 };
 
 const widgetLabels: Record<WidgetId, string> = {
   pinout: "GPIO pinout",
   gpio: "GPIO monitoring",
   calibration: "PWM calibration",
+  i2c: "I2C bus",
   shell: "Remote shell",
 };
 
 export function Dashboard() {
+  const { isConnected } = useWebSocketContext();
   const { widgetOrder, moveWidget } = useWidgetLayout(
     "dashboard-widget-order",
     defaultWidgetOrder,
@@ -46,7 +51,8 @@ export function Dashboard() {
           <button
             aria-label={`Move ${widgetLabels[widget]} widget`}
             className="absolute right-3 top-3 z-10 cursor-grab rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm leading-none text-slate-500 hover:text-slate-100 active:cursor-grabbing"
-            draggable
+            disabled={!isConnected}
+            draggable={isConnected}
             onDragEnd={() => setDraggedWidget(null)}
             onDragStart={() => setDraggedWidget(widget)}
             title={`Move ${widgetLabels[widget]} widget`}
@@ -54,7 +60,13 @@ export function Dashboard() {
           >
             ⋮⋮
           </button>
-          {widgets[widget]}
+          <fieldset
+            aria-label={`${widgetLabels[widget]} controls`}
+            className="contents"
+            disabled={!isConnected}
+          >
+            {widgets[widget]}
+          </fieldset>
         </div>
       ))}
     </div>
